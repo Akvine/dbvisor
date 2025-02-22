@@ -1,0 +1,298 @@
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ru.akvine.dbvisor.services.mappers.PostgreSQLMapper">
+
+    <resultMap id="Index" type="ru.akvine.dbvisor.services.dto.metadata.Index">
+        <result property="name" column="indexName" javaType="java.lang.String"/>
+        <result property="tableName" column="tableName" javaType="java.lang.String"/>
+        <result property="createStatement" column="create_statement" javaType="java.lang.String"/>
+        <result property="dropStatement" column="drop_statement" javaType="java.lang.String"/>
+    </resultMap>
+    <resultMap id="Trigger" type="ru.akvine.dbvisor.services.dto.metadata.Trigger">
+        <result property="name" column="triggerName" javaType="java.lang.String"/>
+        <result property="tableName" column="tableName" javaType="java.lang.String"/>
+        <result property="createStatement" column="create_statement" javaType="java.lang.String"/>
+        <result property="dropStatement" column="drop_statement" javaType="java.lang.String"/>
+        <result property="enableStatement" column="enable_statement" javaType="java.lang.String"/>
+        <result property="disableStatement" column="disable_statement" javaType="java.lang.String"/>
+    </resultMap>
+    <resultMap id="Constraint" type="ru.akvine.dbvisor.services.dto.metadata.Constraint">
+        <result property="name" column="constraintName" javaType="java.lang.String"/>
+        <result property="tableName" column="tableName" javaType="java.lang.String"/>
+        <result property="dropStatement" column="drop_statement" javaType="java.lang.String"/>
+        <result property="createStatement" column="create_statement" javaType="java.lang.String"/>
+        <result property="relatedTableName" column="relatedTableName" javaType="java.lang.String"/>
+        <result typeHandler="ru.akvine.dbvisor.services.mappers.ConstraintTypeHandler" property="constraintType" column="constraintType"/>
+    </resultMap>
+
+    <select id="getRelatedTables" resultType="string">
+        SELECT DISTINCT kcu.table_name
+        FROM information_schema.constraint_column_usage ccu
+                 INNER JOIN information_schema.referential_constraints fk
+                            ON ccu.constraint_catalog = fk.unique_constraint_catalog
+                                AND ccu.constraint_schema = fk.unique_constraint_schema
+                                AND ccu.constraint_name = fk.unique_constraint_name
+                 INNER JOIN information_schema.key_column_usage kcu
+                            ON kcu.constraint_catalog = fk.constraint_catalog
+                                AND kcu.constraint_schema = fk.constraint_schema
+                                AND kcu.constraint_name = fk.constraint_name
+        WHERE ccu.table_schema = #{schemaName}
+          AND ccu.table_name = #{tableName}
+    </select>
+
+    <select id="getUniqueIndexesByTable" resultMap="Index">
+        SELECT
+        ind.tablename AS tableName,
+        ind.indexname AS indexName,
+        ind.indexdef AS create_statement,
+        'DROP INDEX "' ||ind.indexname|| '" RESTRICT' AS drop_statement
+        FROM pg_index idx
+        JOIN pg_class cls ON idx.indexrelid = cls.oid
+        JOIN pg_am am ON am.oid = cls.relam
+        JOIN pg_indexes ind ON ind.indexname = cls.relname
+        LEFT JOIN pg_constraint constr  on constr.conname = ind.indexname
+        WHERE indisunique = true AND indisprimary = false AND tablename = #{tableName} AND schemaname = #{schemaName}
+        <if test="activeOnly">
+            AND ind.indexname
+            IN (SELECT
+            pg_class.relname
+            FROM
+            pg_index
+            INNER JOIN pg_class ON indexrelid = pg_class.oid
+            WHERE
+            pg_index.indisready = true)
+        </if>
+        AND constr.conname IS NULL
+    </select>
+
+    <select id="getNonUniqueIndexesByTable" resultMap="Index">
+        SELECT
+        ind.tablename AS tableName,
+        ind.indexname AS indexName,
+        ind.indexdef AS create_statement,
+        'DROP INDEX "' ||ind.indexname|| '" RESTRICT' AS drop_statement
+        FROM pg_index idx
+        JOIN pg_class cls ON idx.indexrelid = cls.oid
+        JOIN pg_am am ON am.oid = cls.relam
+        JOIN pg_indexes ind ON ind.indexname = cls.relname
+        WHERE indisunique = false AND indisprimary = false AND tablename = #{tableName} AND schemaname = #{schemaName}
+        <if test="activeOnly">
+            AND ind.indexname
+            IN (SELECT
+            pg_class.relname
+            FROM
+            pg_index
+            INNER JOIN pg_class ON indexrelid = pg_class.oid
+            WHERE
+            pg_index.indisready = true)
+        </if>
+    </select>
+
+    <select id="getTriggersByTable" resultMap="Trigger">
+        SELECT
+        c.relname AS tableName,
+        t.tgname AS triggerName,
+        pg_get_triggerdef(t.oid) as create_statement,
+        'ALTER TABLE "'||c.relname|| '" DISABLE TRIGGER "' ||t.tgname|| '" ' AS disable_statement,
+        'ALTER TABLE "'||c.relname|| '" ENABLE TRIGGER "' ||t.tgname|| '" ' AS enable_statement,
+        'DROP TRIGGER "' ||t.tgname|| '" ON "' ||c.relname|| '" ' AS drop_statement
+        FROM
+        pg_trigger t
+        JOIN pg_class c ON c.oid = t.tgrelid
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE
+        c.relname = #{tableName}
+        AND  t.tgconstrrelid = 0
+        AND  t.tgconstrindid = 0
+        AND  t.tgconstraint = 0
+        <if test="activeOnly">
+            <![CDATA[ AND t.tgenabled <> 'D']]>
+        </if>
+    </select>
+
+    <select id="getPrimaryKeyByTable" resultMap="Constraint">
+        SELECT DISTINCT relname                                        AS tableName,
+        conname                                        AS constraintName,
+        constr.contype                                 AS constraintType,
+        'ALTER TABLE "' || nsp.nspname || '"."' || cls.relname || '" DROP CONSTRAINT "' ||
+        constr.conname ||
+        '"'                                            AS drop_statement,
+        'ALTER TABLE "' || nsp.nspname || '"."' || cls.relname || '" ADD CONSTRAINT "' ||
+        constr.conname ||
+        '" ' || pg_get_constraintdef(constr.oid) || '' AS create_statement
+        FROM pg_constraint constr
+        INNER JOIN
+        pg_class cls ON constr.conrelid = cls.oid
+        INNER JOIN
+        pg_namespace nsp ON nsp.oid = cls.relnamespace
+        WHERE cls.relname = #{tableName}
+        AND nsp.nspname = #{schemaName}
+        AND constr.contype IN ('p')
+    </select>
+
+    <select id="getForeignKeyByTable" resultMap="Constraint">
+        SELECT DISTINCT
+        cls.relname AS tableName,
+        constr.conname AS constraintName,
+        constr.contype AS constraintType,
+        'ALTER TABLE "' || nsp.nspname || '"."' || cls.relname || '" DROP CONSTRAINT "' || constr.conname || '"' AS drop_statement,
+        'ALTER TABLE "' || nsp.nspname || '"."' || cls.relname || '" ADD CONSTRAINT "' || constr.conname || '" ' || pg_get_constraintdef(constr.oid) || '' AS create_statement,
+        refcls.relname AS relatedTableName
+        FROM pg_constraint constr
+        INNER JOIN pg_class cls ON constr.conrelid = cls.oid
+        INNER JOIN pg_namespace nsp ON nsp.oid = cls.relnamespace
+        LEFT JOIN pg_class refcls ON constr.confrelid = refcls.oid
+        WHERE cls.relname = #{tableName}
+        AND nsp.nspname = #{schemaName}
+        AND constr.contype IN ('f')
+    </select>
+
+    <select id="getUniqueByTable" resultMap="Constraint">
+        SELECT DISTINCT relname                                        AS tableName,
+        conname                                        AS constraintName,
+        constr.contype                                 AS constraintType,
+        'ALTER TABLE "' || nsp.nspname || '"."' || cls.relname || '" DROP CONSTRAINT "' ||
+        constr.conname ||
+        '"'                                            AS drop_statement,
+        'ALTER TABLE "' || nsp.nspname || '"."' || cls.relname || '" ADD CONSTRAINT "' ||
+        constr.conname ||
+        '" ' || pg_get_constraintdef(constr.oid) || '' AS create_statement
+        FROM pg_constraint constr
+        INNER JOIN
+        pg_class cls ON constr.conrelid = cls.oid
+        INNER JOIN
+        pg_namespace nsp ON nsp.oid = cls.relnamespace
+        WHERE cls.relname = #{tableName}
+        AND nsp.nspname = #{schemaName}
+        AND constr.contype IN ('u')
+    </select>
+
+    <select id="getCheckByTable" resultMap="Constraint">
+        SELECT DISTINCT relname                                        AS tableName,
+        conname                                        AS constraintName,
+        constr.contype                                 AS constraintType,
+        'ALTER TABLE "' || nsp.nspname || '"."' || cls.relname || '" DROP CONSTRAINT "' ||
+        constr.conname ||
+        '"'                                            AS drop_statement,
+        'ALTER TABLE "' || nsp.nspname || '"."' || cls.relname || '" ADD CONSTRAINT "' ||
+        constr.conname ||
+        '" ' || pg_get_constraintdef(constr.oid) || '' AS create_statement
+        FROM pg_constraint constr
+        INNER JOIN
+        pg_class cls ON constr.conrelid = cls.oid
+        INNER JOIN
+        pg_namespace nsp ON nsp.oid = cls.relnamespace
+        WHERE cls.relname = #{tableName}
+        AND nsp.nspname = #{schemaName}
+        AND constr.contype IN ('c')
+    </select>
+
+    <select id="getDefaultByTable" resultMap="Constraint">
+        SELECT DISTINCT relname                                        AS tableName,
+        conname                                        AS constraintName,
+        constr.contype                                 AS constraintType,
+        'ALTER TABLE "' || nsp.nspname || '"."' || cls.relname || '" DROP CONSTRAINT "' ||
+        constr.conname ||
+        '"'                                            AS drop_statement,
+        'ALTER TABLE "' || nsp.nspname || '"."' || cls.relname || '" ADD CONSTRAINT "' ||
+        constr.conname ||
+        '" ' || pg_get_constraintdef(constr.oid) || '' AS create_statement
+        FROM pg_constraint constr
+        INNER JOIN
+        pg_class cls ON constr.conrelid = cls.oid
+        INNER JOIN
+        pg_namespace nsp ON nsp.oid = cls.relnamespace
+        WHERE cls.relname = #{tableName}
+        AND nsp.nspname = #{schemaName}
+        AND constr.contype IN ('d')
+    </select>
+
+    <select id="getPKConstraintForColumn" resultMap="Constraint">
+        SELECT constr.contype AS constraintType
+        FROM pg_constraint constr
+        JOIN pg_class cls ON constr.conrelid = cls.oid
+        JOIN pg_attribute pattr ON cls.oid = pattr.attrelid
+        JOIN pg_namespace nsp ON nsp.oid = cls.relnamespace
+        WHERE cls.relname = #{tableName}
+        AND pattr.attname = #{columnName}
+        AND nsp.nspname = #{schemaName}
+        AND pattr.attnum > 0
+        AND constr.contype = 'p'
+        AND ARRAY [pattr.attnum] @> constr.conkey
+    </select>
+
+    <select id="getUniqueConstraintForColumn" resultMap="Constraint">
+        SELECT constr.contype AS constraintType
+        FROM pg_constraint constr
+        JOIN pg_class cls ON constr.conrelid = cls.oid
+        JOIN pg_attribute pattr ON cls.oid = pattr.attrelid
+        JOIN pg_namespace nsp ON nsp.oid = cls.relnamespace
+        WHERE cls.relname = #{tableName}
+        AND pattr.attname = #{columnName}
+        AND nsp.nspname = #{schemaName}
+        AND pattr.attnum > 0
+        AND constr.contype = 'u'
+        AND ARRAY [pattr.attnum] @> constr.conkey
+    </select>
+
+    <select id="getCheckConstraintForColumn" resultMap="Constraint">
+        SELECT DISTINCT constr.contype AS constraintType
+        FROM pg_constraint constr
+        JOIN pg_class cls ON constr.conrelid = cls.oid
+        JOIN pg_attribute pattr ON cls.oid = pattr.attrelid
+        JOIN pg_namespace nsp ON nsp.oid = cls.relnamespace
+        WHERE cls.relname = #{tableName}
+        AND pattr.attname = #{columnName}
+        AND nsp.nspname = #{schemaName}
+        AND pattr.attnum > 0
+        AND constr.contype = 'c'
+        AND ARRAY [pattr.attnum] @> constr.conkey
+    </select>
+
+    <select id="getFKConstraintForColumn" resultMap="Constraint">
+        SELECT DISTINCT constr.contype AS constraintType
+        FROM pg_constraint constr
+        JOIN pg_class cls ON constr.conrelid = cls.oid
+        JOIN pg_attribute pattr ON cls.oid = pattr.attrelid
+        JOIN pg_namespace nsp ON nsp.oid = cls.relnamespace
+        WHERE cls.relname = #{tableName}
+        AND pattr.attname = #{columnName}
+        AND nsp.nspname = #{schemaName}
+        AND pattr.attnum > 0
+        AND constr.contype = 'f'
+        AND ARRAY [pattr.attnum] @> constr.conkey
+    </select>
+
+    <select id="getNotNullConstraintForColumn" resultMap="Constraint">
+        SELECT 'n' AS constraintType
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = #{tableName}
+        AND column_name = #{columnName}
+        AND table_schema = #{schemaName}
+        AND is_nullable = 'NO'
+    </select>
+
+    <select id="getDefaultConstraintForColumn" resultMap="Constraint">
+        SELECT DISTINCT 'd' AS constraintType
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_schema = #{schemaName}
+        AND table_name = #{tableName}
+        AND column_name = #{columnName}
+        AND column_default IS NOT NULL
+    </select>
+
+    <select id="getIndexConstraintForColumn" resultMap="Constraint">
+        SELECT DISTINCT 'i' AS constraintType
+        FROM  pg_catalog.pg_index idx
+        JOIN pg_catalog.pg_class pc ON idx.indexrelid = pc."oid"
+        JOIN pg_catalog.pg_attribute pa ON pa.attrelid  = pc.oid
+        JOIN pg_indexes ind ON ind.indexname = pc.relname
+        WHERE indisunique = false
+        AND indisprimary = false
+        AND ind.tablename = #{tableName}
+        AND ind.schemaname = #{schemaName}
+        AND pa.attname = #{columnName}
+    </select>
+
+
+</mapper>

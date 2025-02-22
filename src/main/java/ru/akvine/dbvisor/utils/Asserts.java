@@ -1,7 +1,7 @@
 package ru.akvine.dbvisor.utils;
 
 import lombok.experimental.UtilityClass;
-import ru.akvine.dbvisor.exceptions.AssertsException;
+import ru.akvine.dbvisor.exceptions.tech.AssertsException;
 
 import java.util.Objects;
 

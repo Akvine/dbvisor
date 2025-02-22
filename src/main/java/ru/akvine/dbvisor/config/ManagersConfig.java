@@ -1,5 +1,6 @@
 package ru.akvine.dbvisor.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.akvine.dbvisor.enums.DatabaseType;
@@ -13,7 +14,9 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 @Configuration
+@RequiredArgsConstructor
 public class ManagersConfig {
+
     @Bean
     public UrlBuildersManager urlBuildersManager(List<URLBuilder> builders) {
         Map<DatabaseType, URLBuilder> urlBuilderMap = builders

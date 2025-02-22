@@ -1,4 +1,4 @@
-package ru.akvine.dbvisor.exceptions;
+package ru.akvine.dbvisor.exceptions.tech;
 
 public class AssertsException extends RuntimeException {
     public AssertsException(String message) {
