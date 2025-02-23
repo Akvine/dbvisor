@@ -12,8 +12,14 @@ import ru.akvine.dbvisor.enums.DatabaseType;
 import ru.akvine.dbvisor.services.DataSourceService;
 import ru.akvine.dbvisor.services.MetadataService;
 import ru.akvine.dbvisor.services.dto.ConnectionInfo;
+import ru.akvine.dbvisor.services.dto.GetRelatedTables;
+import ru.akvine.dbvisor.services.dto.metadata.RelatedTables;
+import ru.akvine.dbvisor.services.dto.metadata.TableMetadata;
 
 import javax.sql.DataSource;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 
 @RequestMapping(value = "/databases")
 @RestController
@@ -33,6 +39,19 @@ public class DatabaseController {
                 .setDatabaseName(request.getDatabaseName())
                 .setDatabaseType(DatabaseType.POSTGRESQL);
         DataSource dataSource = dataSourceService.create(info);
-        return ResponseEntity.ok().body(metadataService.getTables(dataSource, info));
+        List<String> tableNames = metadataService.getTables(dataSource, info).stream()
+                .map(TableMetadata::getTableName).toList();
+        List<RelatedTables> relatedTables = new ArrayList<>();
+
+        for (String tableName : tableNames) {
+            RelatedTables relatedTables1 = metadataService.getRelatedTables(new GetRelatedTables()
+                    .setDataSource(dataSource)
+                    .setTableName(tableName)
+                    .setSchema(request.getSchema())
+                    .setDatabaseType(DatabaseType.POSTGRESQL));
+            relatedTables.add(relatedTables1);
+        }
+
+        return ResponseEntity.ok().body(relatedTables);
     }
 }

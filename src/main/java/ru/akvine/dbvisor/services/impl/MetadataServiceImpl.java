@@ -7,7 +7,10 @@ import ru.akvine.dbvisor.services.MapperService;
 import ru.akvine.dbvisor.services.MetadataService;
 import ru.akvine.dbvisor.services.ResultSetService;
 import ru.akvine.dbvisor.services.dto.ConnectionInfo;
+import ru.akvine.dbvisor.services.dto.GetRelatedTables;
+import ru.akvine.dbvisor.services.dto.metadata.RelatedTables;
 import ru.akvine.dbvisor.services.dto.metadata.TableMetadata;
+import ru.akvine.dbvisor.utils.Asserts;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -34,8 +37,6 @@ public class MetadataServiceImpl implements MetadataService {
                 metadata.setDatabase(resultSet.getString("TABLE_CAT"));
                 metadata.setSchema(resultSet.getString("TABLE_SCHEM"));
                 metadata.setTableName(resultSet.getString("TABLE_NAME"));
-                mapperService.getMapper(source, info.getDatabaseType()).getRelatedTables(
-                        metadata.getTableName(), metadata.getSchema());
                 tableMetadata.add(metadata);
             }
         } catch (SQLException exception) {
@@ -44,5 +45,17 @@ public class MetadataServiceImpl implements MetadataService {
 
 
         return tableMetadata;
+    }
+
+    @Override
+    public RelatedTables getRelatedTables(GetRelatedTables getRelatedTables) {
+        Asserts.isNotNull(getRelatedTables);
+
+        List<String> relatedTables = mapperService
+                .getMapper(getRelatedTables.getDataSource(), getRelatedTables.getDatabaseType())
+                .getRelatedTables(getRelatedTables.getTableName(), getRelatedTables.getSchema());
+        return new RelatedTables()
+                .setOwnerTableName(getRelatedTables.getTableName())
+                .setRelatedTablesNames(relatedTables);
     }
 }

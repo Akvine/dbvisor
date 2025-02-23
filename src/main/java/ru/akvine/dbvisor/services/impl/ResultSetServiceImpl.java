@@ -12,7 +12,7 @@ import java.sql.SQLException;
 @Service
 public class ResultSetServiceImpl implements ResultSetService {
     @Override
-    public ResultSet get(Connection connection, ConnectionInfo info) throws SQLException {
+    public ResultSet get(Connection connection, ConnectionInfo info) {
         String databaseName = info.getDatabaseName();
         String schema = info.getSchemaName();
         String[] types = new String[]{"TABLE"};
