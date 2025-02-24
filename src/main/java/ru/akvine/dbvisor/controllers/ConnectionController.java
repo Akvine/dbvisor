@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.akvine.dbvisor.controllers.converters.ConnectionConverter;
 import ru.akvine.dbvisor.controllers.dto.common.Response;
+import ru.akvine.dbvisor.controllers.dto.common.SuccessfulResponse;
 import ru.akvine.dbvisor.controllers.dto.connection.CreateConnectionRequest;
 import ru.akvine.dbvisor.controllers.meta.ConnectionControllerMeta;
 import ru.akvine.dbvisor.controllers.validators.ConnectionValidator;
@@ -34,5 +35,11 @@ public class ConnectionController implements ConnectionControllerMeta {
         CreateConnection createConnection = connectionConverter.convertToCreateConnection(request);
         Connection createdConnection = connectionService.create(createConnection);
         return connectionConverter.convertToConnectionResponse(List.of(createdConnection));
+    }
+
+    @Override
+    public Response check(String connectionName) {
+        connectionService.checkConnection(connectionName);
+        return new SuccessfulResponse();
     }
 }

@@ -1,10 +1,7 @@
 package ru.akvine.dbvisor.controllers.meta;
 
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import ru.akvine.dbvisor.controllers.dto.common.Response;
 import ru.akvine.dbvisor.controllers.dto.connection.CreateConnectionRequest;
 
@@ -16,4 +13,7 @@ public interface ConnectionControllerMeta {
 
     @PostMapping
     Response create(@RequestBody @Valid CreateConnectionRequest request);
+
+    @GetMapping("/check/{connectionName}")
+    Response check(@PathVariable("connectionName") String connectionName);
 }

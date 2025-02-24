@@ -4,6 +4,8 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.stereotype.Service;
 import ru.akvine.dbvisor.enums.DatabaseType;
 import ru.akvine.dbvisor.managers.UrlBuildersManager;
@@ -22,7 +24,7 @@ public class DataSourceServiceImpl implements DataSourceService {
     private int connectionPoolMaxSize;
 
     @Override
-    public DataSource create(ConnectionInfo info) {
+    public DataSource createHikariDataSource(ConnectionInfo info) {
         Asserts.isNotNull(info);
 
         DatabaseType type = info.getDatabaseType();
@@ -37,5 +39,27 @@ public class DataSourceServiceImpl implements DataSourceService {
         config.setPoolName("springHikariCP_" + driverClassName);
 
         return new HikariDataSource(config);
+    }
+
+    @Override
+    public SimpleDriverDataSource createSimpleDriverDataSource(ConnectionInfo connectionInfo) {
+        Asserts.isNotNull(connectionInfo);
+
+        DatabaseType databaseType = connectionInfo.getDatabaseType();
+        String driverClassName = databaseType.getDriver();
+        String url = manager.get(databaseType).build(connectionInfo);
+
+        // TODO : вынести username и password в отдельную dto: Credentials
+        String username = connectionInfo.getUsername();
+        String password = connectionInfo.getPassword();
+
+        return DataSourceBuilder
+                .create()
+                .type(SimpleDriverDataSource.class)
+                .url(url)
+                .username(username)
+                .password(password)
+                .driverClassName(driverClassName)
+                .build();
     }
 }
