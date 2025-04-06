@@ -2,12 +2,10 @@ package ru.akvine.dbvisor.controllers.converters;
 
 import org.springframework.stereotype.Component;
 import ru.akvine.dbvisor.controllers.dto.connection.ConnectionRequest;
-import ru.akvine.dbvisor.controllers.dto.database.ColumnMetadataDto;
-import ru.akvine.dbvisor.controllers.dto.database.GetColumnsResponse;
-import ru.akvine.dbvisor.controllers.dto.database.GetTableResponse;
-import ru.akvine.dbvisor.controllers.dto.database.TableMetadataDto;
+import ru.akvine.dbvisor.controllers.dto.database.*;
 import ru.akvine.dbvisor.enums.DatabaseType;
 import ru.akvine.dbvisor.services.dto.ConnectionInfo;
+import ru.akvine.dbvisor.services.dto.GetColumnsAction;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetadata;
 import ru.akvine.dbvisor.services.dto.metadata.TableMetadata;
 import ru.akvine.dbvisor.utils.Asserts;
@@ -26,6 +24,13 @@ public class DatabaseConverter {
                 .setUsername(request.getUsername())
                 .setPassword(request.getPassword())
                 .setDatabaseType(DatabaseType.from(request.getDatabaseType()));
+    }
+
+    public GetColumnsAction convertToGetColumnsActions(GetColumnsRequest request) {
+        Asserts.isNotNull(request);
+        return new GetColumnsAction()
+                .setConnectionInfo(convertToConnectionInfo(request.getConnection()))
+                .setTableName(request.getTableName());
     }
 
     public GetTableResponse convertToGetTableResponse(List<TableMetadata> tables) {

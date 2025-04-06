@@ -15,7 +15,7 @@ import java.util.List;
  * Сервис для получения мета-информации из БД
  * Под "мета-информацией" подразумевается: Таблицы, колонки, ограничения, связи
  */
-public interface MetadataService {
+public interface DatabaseService {
     List<TableMetadata> getTables(DataSource source, ConnectionInfo info);
 
     List<ColumnMetadata> getColumns(GetColumnsAction action);
@@ -23,4 +23,6 @@ public interface MetadataService {
     RelatedTables getRelatedTables(GetRelatedTables getRelatedTables);
 
     List<String> getPrimaryKeyColumnNames(DataSource dataSource, DatabaseType databaseType, String tableName);
+
+    void checkConnection(ConnectionInfo connectionInfo);
 }

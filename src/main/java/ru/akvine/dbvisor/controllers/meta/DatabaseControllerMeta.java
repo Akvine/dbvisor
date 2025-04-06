@@ -15,4 +15,7 @@ public interface DatabaseControllerMeta {
 
     @GetMapping(value = "/columns")
     Response getColumns(@RequestBody @Valid GetColumnsRequest request);
+
+    @GetMapping(value = "/connections/check")
+    Response checkConnection(@RequestBody @Valid ConnectionRequest request);
 }

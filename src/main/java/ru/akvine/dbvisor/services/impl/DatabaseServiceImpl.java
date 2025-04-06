@@ -2,10 +2,13 @@ package ru.akvine.dbvisor.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import ru.akvine.dbvisor.enums.DatabaseType;
+import ru.akvine.dbvisor.exceptions.CheckConnectionException;
 import ru.akvine.dbvisor.exceptions.GetMetadataException;
+import ru.akvine.dbvisor.services.DataSourceService;
 import ru.akvine.dbvisor.services.MapperService;
-import ru.akvine.dbvisor.services.MetadataService;
+import ru.akvine.dbvisor.services.DatabaseService;
 import ru.akvine.dbvisor.services.ResultSetService;
 import ru.akvine.dbvisor.services.dto.ConnectionInfo;
 import ru.akvine.dbvisor.services.dto.GetColumnsAction;
@@ -24,9 +27,10 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class MetadataServiceImpl implements MetadataService {
+public class DatabaseServiceImpl implements DatabaseService {
     private final ResultSetService resultSetService;
     private final MapperService mapperService;
+    private final DataSourceService dataSourceService;
 
     @Override
     public List<TableMetadata> getTables(DataSource source, ConnectionInfo info) {
@@ -46,7 +50,6 @@ public class MetadataServiceImpl implements MetadataService {
             throw new GetMetadataException("Error while getting table metadata. Message = [%s]" + exception.getMessage());
         }
 
-
         return tableMetadata;
     }
 
@@ -54,16 +57,16 @@ public class MetadataServiceImpl implements MetadataService {
     public List<ColumnMetadata> getColumns(GetColumnsAction action) {
         Asserts.isNotNull(action);
 
-        DataSource dataSource = action.getDataSource();
-        String database = action.getDatabase();
-        String schema = action.getSchemaName();
+        DataSource dataSource = dataSourceService.createHikariDataSource(action.getConnectionInfo());
+        String databaseName = action.getConnectionInfo().getDatabaseName();
+        String schema = action.getConnectionInfo().getSchemaName();
         String tableName = action.getTableName();
-        DatabaseType databaseType = action.getType();
+        DatabaseType databaseType = action.getConnectionInfo().getDatabaseType();
 
         List<String> primaryKeyColumnNames = getPrimaryKeyColumnNames(dataSource, databaseType, tableName);
         List<ColumnMetadata> columns = new ArrayList<>();
         try (Connection connection = dataSource.getConnection();
-             ResultSet resultSet = resultSetService.getForColumns(connection, database, schema, tableName, databaseType)) {
+             ResultSet resultSet = resultSetService.getForColumns(connection, databaseName, schema, tableName, databaseType)) {
             while (resultSet.next()) {
                 ColumnMetadata columnMetadata = new ColumnMetadata();
                 columnMetadata.setDatabase(resultSet.getString("TABLE_CAT"));
@@ -114,5 +117,22 @@ public class MetadataServiceImpl implements MetadataService {
                     "Error while getting primary key columns metadata. Message = [%s]" + exception.getMessage());
         }
         return columnNames;
+    }
+
+    @Override
+    public void checkConnection(ConnectionInfo connectionInfo) {
+        Asserts.isNotNull(connectionInfo);
+
+        DataSource source = dataSourceService.createSimpleDriverDataSource(connectionInfo);
+
+        try(Connection datasourceConnection = source.getConnection()) {
+            Assert.isInstanceOf(Connection.class, datasourceConnection);
+        } catch (Exception exception) {
+            String errorMessage = String.format(
+                    "Error during check database connection. Db unavailable. Reason = [%s]",
+                    exception.getMessage()
+            );
+            throw new CheckConnectionException(errorMessage);
+        }
     }
 }
