@@ -7,13 +7,10 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class CreateConnectionRequest {
+public class ConnectionRequest {
     private String databaseName;
 
     private String schema;
-
-    @NotBlank
-    private String connectionName;
 
     @NotBlank
     private String databaseType;
