@@ -4,6 +4,7 @@ import ru.akvine.dbvisor.enums.DatabaseType;
 import ru.akvine.dbvisor.services.dto.ConnectionInfo;
 import ru.akvine.dbvisor.services.dto.GetColumnsAction;
 import ru.akvine.dbvisor.services.dto.GetRelatedTables;
+import ru.akvine.dbvisor.services.dto.InsertValuesAction;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetadata;
 import ru.akvine.dbvisor.services.dto.metadata.RelatedTables;
 import ru.akvine.dbvisor.services.dto.metadata.TableMetadata;
@@ -25,4 +26,6 @@ public interface DatabaseService {
     List<String> getPrimaryKeyColumnNames(DataSource dataSource, DatabaseType databaseType, String tableName);
 
     void checkConnection(ConnectionInfo connectionInfo);
+
+    void insertValues(InsertValuesAction insertValuesAction);
 }

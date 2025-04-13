@@ -18,4 +18,8 @@ public class ConnectionDto {
 
     private String schema;
 
+    private String username;
+
+    private String password;
+
 }

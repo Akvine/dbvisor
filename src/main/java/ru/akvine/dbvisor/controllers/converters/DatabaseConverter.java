@@ -6,9 +6,11 @@ import ru.akvine.dbvisor.controllers.dto.database.*;
 import ru.akvine.dbvisor.enums.DatabaseType;
 import ru.akvine.dbvisor.services.dto.ConnectionInfo;
 import ru.akvine.dbvisor.services.dto.GetColumnsAction;
+import ru.akvine.dbvisor.services.dto.InsertValuesAction;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetadata;
 import ru.akvine.dbvisor.services.dto.metadata.TableMetadata;
 import ru.akvine.dbvisor.utils.Asserts;
+import ru.akvine.dbvisor.utils.FileUtils;
 
 import java.util.List;
 
@@ -24,6 +26,20 @@ public class DatabaseConverter {
                 .setUsername(request.getUsername())
                 .setPassword(request.getPassword())
                 .setDatabaseType(DatabaseType.from(request.getDatabaseType()));
+    }
+
+    public InsertValuesAction convertToInsertValuesAction(InsertValuesRequest request) {
+        return new InsertValuesAction()
+                .setContent(request.getContent())
+                .setTargetTableName(request.getTableName())
+                .setConnectionInfo(new ConnectionInfo()
+                        .setDatabaseName(request.getConnection().getDatabaseName())
+                        .setDatabaseType(DatabaseType.from(request.getConnection().getDatabaseType()))
+                        .setSchemaName(request.getConnection().getSchema())
+                        .setHost(request.getConnection().getHost())
+                        .setUsername(request.getConnection().getUsername())
+                        .setPassword(request.getConnection().getPassword())
+                        .setPort(request.getConnection().getPort()));
     }
 
     public GetColumnsAction convertToGetColumnsActions(GetColumnsRequest request) {

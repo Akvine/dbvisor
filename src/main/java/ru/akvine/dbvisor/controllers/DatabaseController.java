@@ -9,11 +9,13 @@ import ru.akvine.dbvisor.controllers.dto.common.Response;
 import ru.akvine.dbvisor.controllers.dto.common.SuccessfulResponse;
 import ru.akvine.dbvisor.controllers.dto.connection.ConnectionRequest;
 import ru.akvine.dbvisor.controllers.dto.database.GetColumnsRequest;
+import ru.akvine.dbvisor.controllers.dto.database.InsertValuesRequest;
 import ru.akvine.dbvisor.controllers.meta.DatabaseControllerMeta;
 import ru.akvine.dbvisor.services.DataSourceService;
 import ru.akvine.dbvisor.services.DatabaseService;
 import ru.akvine.dbvisor.services.dto.ConnectionInfo;
 import ru.akvine.dbvisor.services.dto.GetColumnsAction;
+import ru.akvine.dbvisor.services.dto.InsertValuesAction;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetadata;
 import ru.akvine.dbvisor.services.dto.metadata.TableMetadata;
 
@@ -46,6 +48,13 @@ public class DatabaseController implements DatabaseControllerMeta {
     public Response checkConnection(@RequestBody @Valid ConnectionRequest request) {
         ConnectionInfo connectionInfo = databaseConverter.convertToConnectionInfo(request);
         databaseService.checkConnection(connectionInfo);
+        return new SuccessfulResponse();
+    }
+
+    @Override
+    public Response insertValues(@RequestBody @Valid InsertValuesRequest request) {
+        InsertValuesAction insertValuesAction = databaseConverter.convertToInsertValuesAction(request);
+        databaseService.insertValues(insertValuesAction);
         return new SuccessfulResponse();
     }
 }

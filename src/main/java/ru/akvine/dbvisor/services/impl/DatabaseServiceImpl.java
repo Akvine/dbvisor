@@ -1,29 +1,31 @@
 package ru.akvine.dbvisor.services.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import ru.akvine.dbvisor.enums.DatabaseType;
 import ru.akvine.dbvisor.exceptions.CheckConnectionException;
 import ru.akvine.dbvisor.exceptions.GetMetadataException;
-import ru.akvine.dbvisor.services.DataSourceService;
-import ru.akvine.dbvisor.services.MapperService;
-import ru.akvine.dbvisor.services.DatabaseService;
-import ru.akvine.dbvisor.services.ResultSetService;
-import ru.akvine.dbvisor.services.dto.ConnectionInfo;
-import ru.akvine.dbvisor.services.dto.GetColumnsAction;
-import ru.akvine.dbvisor.services.dto.GetRelatedTables;
+import ru.akvine.dbvisor.services.*;
+import ru.akvine.dbvisor.services.dto.*;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetadata;
 import ru.akvine.dbvisor.services.dto.metadata.RelatedTables;
 import ru.akvine.dbvisor.services.dto.metadata.TableMetadata;
 import ru.akvine.dbvisor.utils.Asserts;
+import ru.akvine.dbvisor.utils.CryptoUtils;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +33,12 @@ public class DatabaseServiceImpl implements DatabaseService {
     private final ResultSetService resultSetService;
     private final MapperService mapperService;
     private final DataSourceService dataSourceService;
+    private final ParseService parseService;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private final QueryService queryService;
+
+    @Value("${insert.values.batch.size}")
+    private int maxBatchSize;
 
     @Override
     public List<TableMetadata> getTables(DataSource source, ConnectionInfo info) {
@@ -125,7 +133,7 @@ public class DatabaseServiceImpl implements DatabaseService {
 
         DataSource source = dataSourceService.createSimpleDriverDataSource(connectionInfo);
 
-        try(Connection datasourceConnection = source.getConnection()) {
+        try (Connection datasourceConnection = source.getConnection()) {
             Assert.isInstanceOf(Connection.class, datasourceConnection);
         } catch (Exception exception) {
             String errorMessage = String.format(
@@ -133,6 +141,55 @@ public class DatabaseServiceImpl implements DatabaseService {
                     exception.getMessage()
             );
             throw new CheckConnectionException(errorMessage);
+        }
+    }
+
+    @Override
+    public void insertValues(InsertValuesAction insertValuesAction) {
+        Asserts.isNotNull(insertValuesAction);
+
+        byte[] content = insertValuesAction.getContent();
+        ConnectionInfo connectionInfo = insertValuesAction.getConnectionInfo();
+        DataSource dataSource = dataSourceService.createHikariDataSource(connectionInfo);
+
+        Table table = parseService.parse(content);
+        if (!table.isEmpty()) {
+            namedParameterJdbcTemplate.getJdbcTemplate().setDataSource(dataSource);
+
+            GenerateQueryAction action = new GenerateQueryAction()
+                    .setColumnsNames(table.getColumnNames())
+                    .setDatabaseType(connectionInfo.getDatabaseType())
+                    .setTableName(insertValuesAction.getTargetTableName());
+
+            String insertQuery = queryService.generateQuery(action);
+            Map<String, ?>[] batchValues = convertToBatchValues(table);
+            namedParameterJdbcTemplate.batchUpdate(insertQuery, batchValues);
+        }
+    }
+
+    private static Map<String, ?>[] convertToBatchValues(Table table) {
+        Map<String, ?>[] batchValues = new Map[table.getRows().size()];
+
+        int i = 0;
+        for (Row row : table.getRows()) {
+            Map<String, Object> rowValues = new HashMap<>(row.getValues().size());
+            row.getValues().forEach(cellValue -> rowValues.put(
+                    CryptoUtils.hash(cellValue.getColumnName()), mapping(cellValue.getColumnName(), cellValue.getValue())));
+            batchValues[i++] = rowValues;
+        }
+
+        return batchValues;
+    }
+
+    private static Object mapping(String columnName, String columnValue) {
+        if (columnName.equalsIgnoreCase("id")) {
+            return Integer.parseInt(columnValue);
+        } else if (columnName.equalsIgnoreCase("locked")) {
+            return Boolean.parseBoolean(columnValue);
+        } else if (columnName.equalsIgnoreCase("lockgranted")) {
+            return LocalDateTime.parse(columnValue, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        } else {
+            return columnValue;
         }
     }
 }
