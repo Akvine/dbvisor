@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.akvine.dbvisor.enums.DatabaseType;
+import ru.akvine.dbvisor.managers.TypeConverterServicesManager;
 import ru.akvine.dbvisor.managers.UrlBuildersManager;
+import ru.akvine.dbvisor.services.TypeConverterService;
 import ru.akvine.dbvisor.services.database.url.URLBuilder;
 
 import java.util.List;
@@ -23,5 +25,13 @@ public class ManagersConfig {
                 .stream()
                 .collect(toMap(URLBuilder::getType, identity()));
         return new UrlBuildersManager(urlBuilderMap);
+    }
+
+    @Bean
+    public TypeConverterServicesManager typeConverterServicesManager(List<TypeConverterService> typeConverterServices) {
+        Map<DatabaseType, TypeConverterService> urlBuilderMap = typeConverterServices
+                .stream()
+                .collect(toMap(TypeConverterService::getByDatabaseType, identity()));
+        return new TypeConverterServicesManager(urlBuilderMap);
     }
 }

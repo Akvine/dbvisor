@@ -1,6 +1,7 @@
 package ru.akvine.dbvisor.services.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -8,8 +9,10 @@ import org.springframework.util.Assert;
 import ru.akvine.dbvisor.enums.DatabaseType;
 import ru.akvine.dbvisor.exceptions.CheckConnectionException;
 import ru.akvine.dbvisor.exceptions.GetMetadataException;
+import ru.akvine.dbvisor.managers.TypeConverterServicesManager;
 import ru.akvine.dbvisor.services.*;
 import ru.akvine.dbvisor.services.dto.*;
+import ru.akvine.dbvisor.services.dto.metadata.ColumnMetaInfo;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetadata;
 import ru.akvine.dbvisor.services.dto.metadata.RelatedTables;
 import ru.akvine.dbvisor.services.dto.metadata.TableMetadata;
@@ -20,8 +23,6 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,12 +31,15 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class DatabaseServiceImpl implements DatabaseService {
+
+    // TODO: слишком много зависимостей
     private final ResultSetService resultSetService;
     private final MapperService mapperService;
     private final DataSourceService dataSourceService;
     private final ParseService parseService;
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final QueryService queryService;
+    private final TypeConverterServicesManager typeConverterServicesManager;
 
     @Value("${insert.values.batch.size}")
     private int maxBatchSize;
@@ -162,34 +166,42 @@ public class DatabaseServiceImpl implements DatabaseService {
                     .setTableName(insertValuesAction.getTargetTableName());
 
             String insertQuery = queryService.generateQuery(action);
-            Map<String, ?>[] batchValues = convertToBatchValues(table);
+            Map<String, ?>[] batchValues = convertToBatchValues(
+                    table,
+                    insertValuesAction.getColumnNamesPerMetaInfo(),
+                    action.getDatabaseType());
             namedParameterJdbcTemplate.batchUpdate(insertQuery, batchValues);
         }
     }
 
-    private static Map<String, ?>[] convertToBatchValues(Table table) {
+    private Map<String, ?>[] convertToBatchValues(Table table,
+                                                  Map<String, ColumnMetaInfo> columnNamesPerMetaInfo,
+                                                  DatabaseType type) {
         Map<String, ?>[] batchValues = new Map[table.getRows().size()];
+        TypeConverterService converterService = typeConverterServicesManager.get(type);
 
         int i = 0;
         for (Row row : table.getRows()) {
             Map<String, Object> rowValues = new HashMap<>(row.getValues().size());
-            row.getValues().forEach(cellValue -> rowValues.put(
-                    CryptoUtils.hash(cellValue.getColumnName()), mapping(cellValue.getColumnName(), cellValue.getValue())));
+            row.getValues().forEach(cellValue -> {
+                String columnName = cellValue.getColumnName();
+                String value = cellValue.getValue();
+                ColumnMetaInfo columnMetaInfo = columnNamesPerMetaInfo.get(columnName);
+
+                ConvertAction convertAction = new ConvertAction(
+                        value,
+                        columnMetaInfo.getColumnTypeName());
+
+                if (StringUtils.isNotBlank(columnMetaInfo.getDateTimePattern())) {
+                    convertAction.setDateTimeFormat(columnMetaInfo.getDateTimePattern());
+                }
+
+                rowValues.put(
+                        CryptoUtils.hash(cellValue.getColumnName()), converterService.convert(convertAction));
+            });
             batchValues[i++] = rowValues;
         }
 
         return batchValues;
-    }
-
-    private static Object mapping(String columnName, String columnValue) {
-        if (columnName.equalsIgnoreCase("id")) {
-            return Integer.parseInt(columnValue);
-        } else if (columnName.equalsIgnoreCase("locked")) {
-            return Boolean.parseBoolean(columnValue);
-        } else if (columnName.equalsIgnoreCase("lockgranted")) {
-            return LocalDateTime.parse(columnValue, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        } else {
-            return columnValue;
-        }
     }
 }

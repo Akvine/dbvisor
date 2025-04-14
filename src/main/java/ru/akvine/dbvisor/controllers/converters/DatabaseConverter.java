@@ -1,18 +1,22 @@
 package ru.akvine.dbvisor.controllers.converters;
 
 import org.springframework.stereotype.Component;
+import ru.akvine.dbvisor.controllers.dto.ColumnMetaInfoDto;
 import ru.akvine.dbvisor.controllers.dto.connection.ConnectionRequest;
 import ru.akvine.dbvisor.controllers.dto.database.*;
 import ru.akvine.dbvisor.enums.DatabaseType;
 import ru.akvine.dbvisor.services.dto.ConnectionInfo;
 import ru.akvine.dbvisor.services.dto.GetColumnsAction;
 import ru.akvine.dbvisor.services.dto.InsertValuesAction;
+import ru.akvine.dbvisor.services.dto.metadata.ColumnMetaInfo;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetadata;
 import ru.akvine.dbvisor.services.dto.metadata.TableMetadata;
 import ru.akvine.dbvisor.utils.Asserts;
 import ru.akvine.dbvisor.utils.FileUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class DatabaseConverter {
@@ -39,7 +43,8 @@ public class DatabaseConverter {
                         .setHost(request.getConnection().getHost())
                         .setUsername(request.getConnection().getUsername())
                         .setPassword(request.getConnection().getPassword())
-                        .setPort(request.getConnection().getPort()));
+                        .setPort(request.getConnection().getPort()))
+                .setColumnNamesPerMetaInfo(buildMap(request.getColumnsMetaInfo()));
     }
 
     public GetColumnsAction convertToGetColumnsActions(GetColumnsRequest request) {
@@ -76,5 +81,20 @@ public class DatabaseConverter {
                 .setDatabase(columnMetadata.getDatabase())
                 .setPrimaryKey(columnMetadata.isPrimaryKey())
                 .setGeneratedAlways(columnMetadata.isGeneratedAlways());
+    }
+
+    private Map<String, ColumnMetaInfo> buildMap(Map<String, ColumnMetaInfoDto> metaInfoDtoMap) {
+        Map<String, ColumnMetaInfo> result = new HashMap<>();
+        for (Map.Entry<String, ColumnMetaInfoDto> entry : metaInfoDtoMap.entrySet()) {
+            result.put(entry.getKey(), buildColumnMetaInfo(entry.getValue()));
+        }
+
+        return result;
+    }
+
+    private ColumnMetaInfo buildColumnMetaInfo(ColumnMetaInfoDto columnMetaInfoDto) {
+        return new ColumnMetaInfo()
+                .setColumnTypeName(columnMetaInfoDto.getColumnTypeName())
+                .setDateTimePattern(columnMetaInfoDto.getDateTimeFormat());
     }
 }
