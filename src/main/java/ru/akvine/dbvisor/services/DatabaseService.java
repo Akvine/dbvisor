@@ -1,7 +1,7 @@
 package ru.akvine.dbvisor.services;
 
 import ru.akvine.dbvisor.enums.DatabaseType;
-import ru.akvine.dbvisor.services.dto.ConnectionInfo;
+import ru.akvine.dbvisor.services.dto.connection.ConnectionInfo;
 import ru.akvine.dbvisor.services.dto.GetColumnsAction;
 import ru.akvine.dbvisor.services.dto.GetRelatedTables;
 import ru.akvine.dbvisor.services.dto.InsertValuesAction;

@@ -5,14 +5,13 @@ import ru.akvine.dbvisor.controllers.dto.ColumnMetaInfoDto;
 import ru.akvine.dbvisor.controllers.dto.connection.ConnectionRequest;
 import ru.akvine.dbvisor.controllers.dto.database.*;
 import ru.akvine.dbvisor.enums.DatabaseType;
-import ru.akvine.dbvisor.services.dto.ConnectionInfo;
+import ru.akvine.dbvisor.services.dto.connection.ConnectionInfo;
 import ru.akvine.dbvisor.services.dto.GetColumnsAction;
 import ru.akvine.dbvisor.services.dto.InsertValuesAction;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetaInfo;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetadata;
 import ru.akvine.dbvisor.services.dto.metadata.TableMetadata;
 import ru.akvine.dbvisor.utils.Asserts;
-import ru.akvine.dbvisor.utils.FileUtils;
 
 import java.util.HashMap;
 import java.util.List;

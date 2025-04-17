@@ -1,4 +1,4 @@
-package ru.akvine.dbvisor.services.dto;
+package ru.akvine.dbvisor.services.dto.connection;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

@@ -12,6 +12,7 @@ import ru.akvine.dbvisor.exceptions.GetMetadataException;
 import ru.akvine.dbvisor.managers.TypeConverterServicesManager;
 import ru.akvine.dbvisor.services.*;
 import ru.akvine.dbvisor.services.dto.*;
+import ru.akvine.dbvisor.services.dto.connection.ConnectionInfo;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetaInfo;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetadata;
 import ru.akvine.dbvisor.services.dto.metadata.RelatedTables;
@@ -69,7 +70,7 @@ public class DatabaseServiceImpl implements DatabaseService {
     public List<ColumnMetadata> getColumns(GetColumnsAction action) {
         Asserts.isNotNull(action);
 
-        DataSource dataSource = dataSourceService.createHikariDataSource(action.getConnectionInfo());
+        DataSource dataSource = dataSourceService.getOrCreateDataSource(action.getConnectionInfo());
         String databaseName = action.getConnectionInfo().getDatabaseName();
         String schema = action.getConnectionInfo().getSchemaName();
         String tableName = action.getTableName();

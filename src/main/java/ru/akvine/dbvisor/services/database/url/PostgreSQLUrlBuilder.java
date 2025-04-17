@@ -3,7 +3,7 @@ package ru.akvine.dbvisor.services.database.url;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.stereotype.Service;
 import ru.akvine.dbvisor.enums.DatabaseType;
-import ru.akvine.dbvisor.services.dto.ConnectionInfo;
+import ru.akvine.dbvisor.services.dto.connection.ConnectionInfo;
 import ru.akvine.dbvisor.utils.Asserts;
 
 @Service

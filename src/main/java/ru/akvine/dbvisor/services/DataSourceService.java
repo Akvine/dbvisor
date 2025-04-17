@@ -1,12 +1,13 @@
 package ru.akvine.dbvisor.services;
 
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
-import ru.akvine.dbvisor.services.dto.ConnectionInfo;
-
-import javax.sql.DataSource;
+import ru.akvine.dbvisor.services.dto.connection.ConnectionInfo;
+import ru.akvine.dbvisor.services.dto.connection.VisorConnectionDataSource;
 
 public interface DataSourceService {
-    DataSource createHikariDataSource(ConnectionInfo info);
+    VisorConnectionDataSource createHikariDataSource(ConnectionInfo info);
 
     SimpleDriverDataSource createSimpleDriverDataSource(ConnectionInfo connectionInfo);
+
+    VisorConnectionDataSource getOrCreateDataSource(ConnectionInfo connectionInfo);
 }

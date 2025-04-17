@@ -13,7 +13,7 @@ import ru.akvine.dbvisor.controllers.dto.database.InsertValuesRequest;
 import ru.akvine.dbvisor.controllers.meta.DatabaseControllerMeta;
 import ru.akvine.dbvisor.services.DataSourceService;
 import ru.akvine.dbvisor.services.DatabaseService;
-import ru.akvine.dbvisor.services.dto.ConnectionInfo;
+import ru.akvine.dbvisor.services.dto.connection.ConnectionInfo;
 import ru.akvine.dbvisor.services.dto.GetColumnsAction;
 import ru.akvine.dbvisor.services.dto.InsertValuesAction;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetadata;
@@ -32,7 +32,7 @@ public class DatabaseController implements DatabaseControllerMeta {
     @Override
     public Response getTables(@Valid @RequestBody ConnectionRequest request) {
         ConnectionInfo connectionInfo = databaseConverter.convertToConnectionInfo(request);
-        DataSource dataSource = dataSourceService.createHikariDataSource(connectionInfo);
+        DataSource dataSource = dataSourceService.getOrCreateDataSource(connectionInfo);
         List<TableMetadata> tables = databaseService.getTables(dataSource, connectionInfo);
         return databaseConverter.convertToGetTableResponse(tables);
     }
