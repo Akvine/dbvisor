@@ -42,6 +42,7 @@ public class PostgreSQLTypeConverterService implements TypeConverterService {
                     return value;
                 case INT4:
                 case SERIAL:
+                case SERIAL4:
                     return Integer.parseInt(value);
                 case INT2:
                 case SMALLSERIAL:

@@ -21,6 +21,7 @@ public enum PostgreSQLType {
     SERIAL("serial"),
     INT2("int2"),
     SMALLSERIAL("smallserial"),
+    SERIAL4("serial4"),
     FLOAT4("float4"),
     FLOAT8("float8"),
     MONEY("money"),
