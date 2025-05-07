@@ -3,7 +3,7 @@ package ru.akvine.dbvisor.services.dto.common;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import ru.akvine.dbvisor.controllers.dto.common.NextPage;
+import ru.akvine.compozit.commons.dto.NextPage;
 
 @Data
 @Accessors(chain = true)

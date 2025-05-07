@@ -9,6 +9,7 @@ import org.springframework.util.Assert;
 import ru.akvine.dbvisor.enums.DatabaseType;
 import ru.akvine.dbvisor.exceptions.CheckConnectionException;
 import ru.akvine.dbvisor.exceptions.GetMetadataException;
+import ru.akvine.dbvisor.exceptions.InsertValuesException;
 import ru.akvine.dbvisor.managers.TypeConverterServicesManager;
 import ru.akvine.dbvisor.services.*;
 import ru.akvine.dbvisor.services.dto.*;
@@ -153,25 +154,29 @@ public class DatabaseServiceImpl implements DatabaseService {
     public void insertValues(InsertValuesAction insertValuesAction) {
         Asserts.isNotNull(insertValuesAction);
 
-        byte[] content = insertValuesAction.getContent();
-        ConnectionInfo connectionInfo = insertValuesAction.getConnectionInfo();
-        DataSource dataSource = dataSourceService.createHikariDataSource(connectionInfo);
+        try {
+            byte[] content = insertValuesAction.getContent();
+            ConnectionInfo connectionInfo = insertValuesAction.getConnectionInfo();
+            DataSource dataSource = dataSourceService.createHikariDataSource(connectionInfo);
 
-        Table table = parseService.parse(content);
-        if (!table.isEmpty()) {
-            namedParameterJdbcTemplate.getJdbcTemplate().setDataSource(dataSource);
+            Table table = parseService.parse(content);
+            if (!table.isEmpty()) {
+                namedParameterJdbcTemplate.getJdbcTemplate().setDataSource(dataSource);
 
-            GenerateQueryAction action = new GenerateQueryAction()
-                    .setColumnsNames(table.getColumnNames())
-                    .setDatabaseType(connectionInfo.getDatabaseType())
-                    .setTableName(insertValuesAction.getTargetTableName());
+                GenerateQueryAction action = new GenerateQueryAction()
+                        .setColumnsNames(table.getColumnNames())
+                        .setDatabaseType(connectionInfo.getDatabaseType())
+                        .setTableName(insertValuesAction.getTargetTableName());
 
-            String insertQuery = queryService.generateQuery(action);
-            Map<String, ?>[] batchValues = convertToBatchValues(
-                    table,
-                    insertValuesAction.getColumnNamesPerMetaInfo(),
-                    action.getDatabaseType());
-            namedParameterJdbcTemplate.batchUpdate(insertQuery, batchValues);
+                String insertQuery = queryService.generateQuery(action);
+                Map<String, ?>[] batchValues = convertToBatchValues(
+                        table,
+                        insertValuesAction.getColumnNamesPerMetaInfo(),
+                        action.getDatabaseType());
+                namedParameterJdbcTemplate.batchUpdate(insertQuery, batchValues);
+            }
+        } catch (RuntimeException exception) {
+            throw new InsertValuesException(exception.getMessage());
         }
     }
 
