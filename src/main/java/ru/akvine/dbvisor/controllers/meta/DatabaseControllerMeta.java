@@ -12,10 +12,10 @@ import ru.akvine.dbvisor.controllers.dto.database.InsertValuesRequest;
 
 @RequestMapping(value = "/databases")
 public interface DatabaseControllerMeta {
-    @GetMapping(value = "/tables")
+    @PostMapping(value = "/tables")
     Response getTables(@RequestBody @Valid ConnectionRequest request);
 
-    @GetMapping(value = "/columns")
+    @PostMapping(value = "/columns")
     Response getColumns(@RequestBody @Valid GetColumnsRequest request);
 
     @GetMapping(value = "/connections/check")
