@@ -87,7 +87,7 @@ public class DataSourceServiceImpl implements DataSourceService {
     @Override
     public synchronized VisorConnectionDataSource getOrCreateDataSource(ConnectionInfo connectionInfo) {
         String key = generateKey(connectionInfo);
-        if (connectionPoolStore.contains(key)) {
+        if (connectionPoolStore.containsKey(key)) {
             VisorConnectionDataSource dataSource = connectionPoolStore.get(key);
             dataSource.updateLastUsedTime();
             connectionPoolStore.put(key, dataSource);
