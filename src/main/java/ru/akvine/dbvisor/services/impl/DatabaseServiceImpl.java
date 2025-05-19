@@ -14,6 +14,7 @@ import ru.akvine.dbvisor.managers.TypeConverterServicesManager;
 import ru.akvine.dbvisor.services.*;
 import ru.akvine.dbvisor.services.dto.*;
 import ru.akvine.dbvisor.services.dto.connection.ConnectionInfo;
+import ru.akvine.dbvisor.services.dto.connection.VisorConnectionDataSource;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetaInfo;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetadata;
 import ru.akvine.dbvisor.services.dto.metadata.RelatedTables;
@@ -108,9 +109,11 @@ public class DatabaseServiceImpl implements DatabaseService {
     public RelatedTables getRelatedTables(GetRelatedTables getRelatedTables) {
         Asserts.isNotNull(getRelatedTables);
 
+        VisorConnectionDataSource dataSource = dataSourceService.getOrCreateDataSource(getRelatedTables.getConnectionInfo());
+
         List<String> relatedTables = mapperService
-                .getMapper(getRelatedTables.getDataSource(), getRelatedTables.getDatabaseType())
-                .getRelatedTables(getRelatedTables.getTableName(), getRelatedTables.getSchema());
+                .getMapper(dataSource, getRelatedTables.getConnectionInfo().getDatabaseType())
+                .getRelatedTables(getRelatedTables.getTableName(), getRelatedTables.getConnectionInfo().getSchemaName());
         return new RelatedTables()
                 .setOwnerTableName(getRelatedTables.getTableName())
                 .setRelatedTablesNames(relatedTables);

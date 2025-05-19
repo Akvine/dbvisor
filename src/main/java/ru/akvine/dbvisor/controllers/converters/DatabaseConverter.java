@@ -1,15 +1,18 @@
 package ru.akvine.dbvisor.controllers.converters;
 
 import org.springframework.stereotype.Component;
+import ru.akvine.compozit.commons.GetRelatedTablesResponse;
 import ru.akvine.dbvisor.controllers.dto.ColumnMetaInfoDto;
 import ru.akvine.dbvisor.controllers.dto.connection.ConnectionRequest;
 import ru.akvine.dbvisor.controllers.dto.database.*;
 import ru.akvine.dbvisor.enums.DatabaseType;
-import ru.akvine.dbvisor.services.dto.connection.ConnectionInfo;
 import ru.akvine.dbvisor.services.dto.GetColumnsAction;
+import ru.akvine.dbvisor.services.dto.GetRelatedTables;
 import ru.akvine.dbvisor.services.dto.InsertValuesAction;
+import ru.akvine.dbvisor.services.dto.connection.ConnectionInfo;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetaInfo;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetadata;
+import ru.akvine.dbvisor.services.dto.metadata.RelatedTables;
 import ru.akvine.dbvisor.services.dto.metadata.TableMetadata;
 import ru.akvine.dbvisor.utils.Asserts;
 
@@ -29,6 +32,18 @@ public class DatabaseConverter {
                 .setUsername(request.getUsername())
                 .setPassword(request.getPassword())
                 .setDatabaseType(DatabaseType.from(request.getDatabaseType()));
+    }
+
+    public GetRelatedTables convertToGetRelatedTables(GetRelatedTablesRequest request) {
+        return new GetRelatedTables()
+                .setConnectionInfo(convertToConnectionInfo(request.getConnectionInfo()))
+                .setTableName(request.getTableName());
+    }
+
+    public GetRelatedTablesResponse convertToGetRelatedTablesResponse(RelatedTables relatedTables) {
+        return new GetRelatedTablesResponse()
+                .setOwnerTableName(relatedTables.getOwnerTableName())
+                .setRelatedTablesNames(relatedTables.getRelatedTablesNames());
     }
 
     public InsertValuesAction convertToInsertValuesAction(InsertValuesRequest request) {

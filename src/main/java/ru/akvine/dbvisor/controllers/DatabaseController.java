@@ -9,14 +9,17 @@ import ru.akvine.compozit.commons.dto.SuccessfulResponse;
 import ru.akvine.dbvisor.controllers.converters.DatabaseConverter;
 import ru.akvine.dbvisor.controllers.dto.connection.ConnectionRequest;
 import ru.akvine.dbvisor.controllers.dto.database.GetColumnsRequest;
+import ru.akvine.dbvisor.controllers.dto.database.GetRelatedTablesRequest;
 import ru.akvine.dbvisor.controllers.dto.database.InsertValuesRequest;
 import ru.akvine.dbvisor.controllers.meta.DatabaseControllerMeta;
 import ru.akvine.dbvisor.services.DataSourceService;
 import ru.akvine.dbvisor.services.DatabaseService;
+import ru.akvine.dbvisor.services.dto.GetRelatedTables;
 import ru.akvine.dbvisor.services.dto.connection.ConnectionInfo;
 import ru.akvine.dbvisor.services.dto.GetColumnsAction;
 import ru.akvine.dbvisor.services.dto.InsertValuesAction;
 import ru.akvine.dbvisor.services.dto.metadata.ColumnMetadata;
+import ru.akvine.dbvisor.services.dto.metadata.RelatedTables;
 import ru.akvine.dbvisor.services.dto.metadata.TableMetadata;
 
 import javax.sql.DataSource;
@@ -35,6 +38,13 @@ public class DatabaseController implements DatabaseControllerMeta {
         DataSource dataSource = dataSourceService.getOrCreateDataSource(connectionInfo);
         List<TableMetadata> tables = databaseService.getTables(dataSource, connectionInfo);
         return databaseConverter.convertToGetTableResponse(tables);
+    }
+
+    @Override
+    public Response getRelatedTables(@RequestBody @Valid GetRelatedTablesRequest request) {
+        GetRelatedTables action = databaseConverter.convertToGetRelatedTables(request);
+        RelatedTables result = databaseService.getRelatedTables(action);
+        return databaseConverter.convertToGetRelatedTablesResponse(result);
     }
 
     @Override
