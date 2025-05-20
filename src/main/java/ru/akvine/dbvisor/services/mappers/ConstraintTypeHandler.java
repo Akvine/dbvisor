@@ -23,16 +23,16 @@ public class ConstraintTypeHandler implements TypeHandler<ConstraintType> {
 
     @Override
     public ConstraintType getResult(ResultSet resultSet, String columnName) throws SQLException {
-        return ConstraintType.from(resultSet.getString(columnName));
+        return ConstraintType.fromCode(resultSet.getString(columnName));
     }
 
     @Override
     public ConstraintType getResult(ResultSet rs, int columnIndex) throws SQLException {
-        return ConstraintType.from(rs.getString(columnIndex));
+        return ConstraintType.fromCode(rs.getString(columnIndex));
     }
 
     @Override
     public ConstraintType getResult(CallableStatement cs, int columnIndex) throws SQLException {
-        return ConstraintType.from(cs.getString(columnIndex));
+        return ConstraintType.fromCode(cs.getString(columnIndex));
     }
 }

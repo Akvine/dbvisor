@@ -9,19 +9,34 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public enum ConstraintType {
-    TRIGGER(List.of()),
-    FOREIGN_KEY(List.of("f", "F", "R", "FOREIGN KEY")),
-    UNIQUE(List.of("u", "U", "UNIQUE")),
-    IDENTITY(List.of("IDENTITY")),
-    INDEX(List.of("i")),
-    PRIMARY_KEY(List.of("p", "P", "PRIMARY KEY")),
-    CHECK(List.of("c", "C", "CHECK")),
-    DEFAULT(List.of("d", "D")),
-    NOT_NULL(List.of("n", "N"));
+    TRIGGER("Trigger", List.of()),
+    FOREIGN_KEY("Foreign key", List.of("f", "F", "R", "FOREIGN KEY")),
+    UNIQUE("Unique", List.of("u", "U", "UNIQUE")),
+    IDENTITY("Identity", List.of("IDENTITY")),
+    INDEX("Index", List.of("i")),
+    PRIMARY_KEY("Primary key", List.of("p", "P", "PRIMARY KEY")),
+    CHECK("Check", List.of("c", "C", "CHECK")),
+    DEFAULT("Default", List.of("d", "D")),
+    NOT_NULL("Not null", List.of("n", "N"));
 
+    private final String name;
     private final List<String> codes;
 
-    public static ConstraintType from(String code) {
+    public static ConstraintType fromName(String name) {
+        if (StringUtils.isBlank(name)) {
+            throw new IllegalArgumentException("Constraint type name can't be blank!");
+        }
+
+        for (ConstraintType type : values()) {
+            if (type.getName().equalsIgnoreCase(name)) {
+                return type;
+            }
+        }
+
+        throw new UnsupportedOperationException("Constraint type with name = [" + name + "] is not supported by app!");
+    }
+
+    public static ConstraintType fromCode(String code) {
         if (StringUtils.isBlank(code)) {
             throw new IllegalArgumentException("Constraint type code can't be blank!");
         }
@@ -29,10 +44,8 @@ public enum ConstraintType {
         for (ConstraintType type : values()) {
             List<String> codes = type.getCodes();
 
-            for (String constraintCode : codes) {
-                if (constraintCode.equals(code)) {
-                    return type;
-                }
+            if (codes.contains(code)) {
+                return type;
             }
         }
 
