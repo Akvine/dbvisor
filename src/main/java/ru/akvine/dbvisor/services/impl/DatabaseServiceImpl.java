@@ -160,7 +160,7 @@ public class DatabaseServiceImpl implements DatabaseService {
         try {
             byte[] content = insertValuesAction.getContent();
             ConnectionInfo connectionInfo = insertValuesAction.getConnectionInfo();
-            DataSource dataSource = dataSourceService.createHikariDataSource(connectionInfo);
+            DataSource dataSource = dataSourceService.getOrCreateDataSource(connectionInfo);
 
             Table table = parseService.parse(content);
             if (!table.isEmpty()) {

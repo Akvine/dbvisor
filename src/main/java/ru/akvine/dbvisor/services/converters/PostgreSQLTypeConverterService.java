@@ -1,6 +1,7 @@
 package ru.akvine.dbvisor.services.converters;
 
 import org.springframework.stereotype.Service;
+import ru.akvine.compozit.commons.utils.DateTimeUtils;
 import ru.akvine.dbvisor.enums.DatabaseType;
 import ru.akvine.dbvisor.enums.PostgreSQLType;
 import ru.akvine.dbvisor.exceptions.ConvertTypeException;
@@ -53,10 +54,10 @@ public class PostgreSQLTypeConverterService implements TypeConverterService {
                 case MONEY:
                     return Double.parseDouble(value);
                 case TIMESTAMP:
-                     formatter = DateTimeFormatter.ofPattern(action.getDateTimeFormat());
+                    formatter = DateTimeUtils.extractFromLocalDateTime(value);
                     return LocalDateTime.parse(value, formatter);
                 case DATE:
-                    formatter = DateTimeFormatter.ofPattern(action.getDateTimeFormat());
+                    formatter = DateTimeUtils.extractFromLocalDate(value);
                     return LocalDate.parse(value, formatter);
                 case TIME:
                     formatter = DateTimeFormatter.ofPattern(action.getDateTimeFormat());
@@ -69,7 +70,7 @@ public class PostgreSQLTypeConverterService implements TypeConverterService {
                     "Error while convert raw type = [%s] to [%s]. Message = [%s]",
                     value, PostgreSQLTypeConverterService.class.getSimpleName(), exception.getMessage()
             );
-           throw new ConvertTypeException(errorMessage, exception);
+            throw new ConvertTypeException(errorMessage, exception);
         }
     }
 

@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import ru.akvine.dbvisor.controllers.dto.ColumnMetaInfoDto;
 import ru.akvine.dbvisor.controllers.dto.connection.ConnectionDto;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -22,5 +23,5 @@ public class InsertValuesRequest {
     private byte[] content;
 
     @NotNull
-    private Map<String, ColumnMetaInfoDto> columnsMetaInfo;
+    private Map<String, ColumnMetaInfoDto> columnsMetaInfo = new HashMap<>();
 }
