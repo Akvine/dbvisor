@@ -1,4 +1,4 @@
-package ru.akvine.dbvisor.controllers.dto.database;
+package ru.akvine.dbvisor.controllers.dto.script;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,11 +8,13 @@ import ru.akvine.compozit.commons.ConnectionRequest;
 
 @Data
 @Accessors(chain = true)
-public class GetRelatedTablesRequest {
+public class GenerateClearScriptRequest {
+    @NotNull
+    private ConnectionRequest connection;
 
     @NotBlank
     private String tableName;
 
-    @NotNull
-    private ConnectionRequest connection;
+    @NotBlank
+    private String deleteMode;
 }

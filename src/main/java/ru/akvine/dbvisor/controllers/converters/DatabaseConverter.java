@@ -3,7 +3,6 @@ package ru.akvine.dbvisor.controllers.converters;
 import org.springframework.stereotype.Component;
 import ru.akvine.compozit.commons.GetRelatedTablesResponse;
 import ru.akvine.dbvisor.controllers.dto.ColumnMetaInfoDto;
-import ru.akvine.dbvisor.controllers.dto.connection.ConnectionRequest;
 import ru.akvine.dbvisor.controllers.dto.database.*;
 import ru.akvine.dbvisor.enums.DatabaseType;
 import ru.akvine.dbvisor.services.dto.GetColumnsAction;
@@ -21,22 +20,10 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class DatabaseConverter {
-    public ConnectionInfo convertToConnectionInfo(ConnectionRequest request) {
-        Asserts.isNotNull(request);
-        return new ConnectionInfo()
-                .setDatabaseName(request.getDatabaseName())
-                .setHost(request.getHost())
-                .setPort(request.getPort())
-                .setSchemaName(request.getSchema())
-                .setUsername(request.getUsername())
-                .setPassword(request.getPassword())
-                .setDatabaseType(DatabaseType.from(request.getDatabaseType()));
-    }
-
+public class DatabaseConverter extends ConnectionConverter {
     public GetRelatedTables convertToGetRelatedTables(GetRelatedTablesRequest request) {
         return new GetRelatedTables()
-                .setConnectionInfo(convertToConnectionInfo(request.getConnectionInfo()))
+                .setConnectionInfo(convert(request.getConnection()))
                 .setTableName(request.getTableName());
     }
 
@@ -64,7 +51,7 @@ public class DatabaseConverter {
     public GetColumnsAction convertToGetColumnsActions(GetColumnsRequest request) {
         Asserts.isNotNull(request);
         return new GetColumnsAction()
-                .setConnectionInfo(convertToConnectionInfo(request.getConnection()))
+                .setConnectionInfo(convert(request.getConnection()))
                 .setTableName(request.getTableName());
     }
 

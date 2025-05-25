@@ -4,10 +4,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import ru.akvine.compozit.commons.ConnectionRequest;
 import ru.akvine.compozit.commons.dto.Response;
 import ru.akvine.compozit.commons.dto.SuccessfulResponse;
 import ru.akvine.dbvisor.controllers.converters.DatabaseConverter;
-import ru.akvine.dbvisor.controllers.dto.connection.ConnectionRequest;
 import ru.akvine.dbvisor.controllers.dto.database.GetColumnsRequest;
 import ru.akvine.dbvisor.controllers.dto.database.GetRelatedTablesRequest;
 import ru.akvine.dbvisor.controllers.dto.database.InsertValuesRequest;
@@ -34,7 +34,7 @@ public class DatabaseController implements DatabaseControllerMeta {
 
     @Override
     public Response getTables(@Valid @RequestBody ConnectionRequest request) {
-        ConnectionInfo connectionInfo = databaseConverter.convertToConnectionInfo(request);
+        ConnectionInfo connectionInfo = databaseConverter.convert(request);
         DataSource dataSource = dataSourceService.getOrCreateDataSource(connectionInfo);
         List<TableMetadata> tables = databaseService.getTables(dataSource, connectionInfo);
         return databaseConverter.convertToGetTableResponse(tables);
@@ -56,7 +56,7 @@ public class DatabaseController implements DatabaseControllerMeta {
 
     @Override
     public Response checkConnection(@RequestBody @Valid ConnectionRequest request) {
-        ConnectionInfo connectionInfo = databaseConverter.convertToConnectionInfo(request);
+        ConnectionInfo connectionInfo = databaseConverter.convert(request);
         databaseService.checkConnection(connectionInfo);
         return new SuccessfulResponse();
     }

@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.akvine.dbvisor.enums.DatabaseType;
+import ru.akvine.dbvisor.managers.ScriptGeneratorServicesManager;
 import ru.akvine.dbvisor.managers.TypeConverterServicesManager;
 import ru.akvine.dbvisor.managers.UrlBuildersManager;
+import ru.akvine.dbvisor.services.ScriptGeneratorService;
 import ru.akvine.dbvisor.services.TypeConverterService;
 import ru.akvine.dbvisor.services.database.url.URLBuilder;
 
@@ -33,5 +35,12 @@ public class ManagersConfig {
                 .stream()
                 .collect(toMap(TypeConverterService::getByDatabaseType, identity()));
         return new TypeConverterServicesManager(urlBuilderMap);
+    }
+
+    @Bean
+    public ScriptGeneratorServicesManager scriptGeneratorServicesManager(List<ScriptGeneratorService> generators) {
+        Map<DatabaseType, ScriptGeneratorService> scriptGenerators = generators.stream()
+                .collect(toMap(ScriptGeneratorService::getDatabaseType, identity()));
+        return new ScriptGeneratorServicesManager(scriptGenerators);
     }
 }
