@@ -5,11 +5,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.akvine.compozit.commons.dto.Response;
+import ru.akvine.compozit.commons.visor.ConstraintType;
 import ru.akvine.dbvisor.controllers.converters.MetadataConverter;
 import ru.akvine.dbvisor.controllers.dto.metadata.ListConstraintsRequest;
 import ru.akvine.dbvisor.controllers.dto.metadata.ListConstraintsResponse;
 import ru.akvine.dbvisor.controllers.meta.MetadataControllerMeta;
-import ru.akvine.dbvisor.enums.ConstraintType;
 import ru.akvine.dbvisor.services.MetadataService;
 import ru.akvine.dbvisor.services.dto.metadata.GetConstraints;
 

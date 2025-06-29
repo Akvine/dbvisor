@@ -3,7 +3,7 @@ package ru.akvine.dbvisor.services.dto.metadata;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import ru.akvine.dbvisor.enums.ConstraintType;
+import ru.akvine.compozit.commons.visor.ConstraintType;
 
 @Setter
 @Getter

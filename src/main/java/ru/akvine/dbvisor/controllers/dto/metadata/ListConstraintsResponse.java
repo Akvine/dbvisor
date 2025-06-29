@@ -3,7 +3,7 @@ package ru.akvine.dbvisor.controllers.dto.metadata;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import ru.akvine.compozit.commons.dto.SuccessfulResponse;
-import ru.akvine.dbvisor.enums.ConstraintType;
+import ru.akvine.compozit.commons.visor.ConstraintType;
 
 import java.util.List;
 

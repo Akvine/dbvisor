@@ -2,7 +2,7 @@ package ru.akvine.dbvisor.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.akvine.dbvisor.enums.ConstraintType;
+import ru.akvine.compozit.commons.visor.ConstraintType;
 import ru.akvine.dbvisor.services.DataSourceService;
 import ru.akvine.dbvisor.services.MapperService;
 import ru.akvine.dbvisor.services.MetadataService;

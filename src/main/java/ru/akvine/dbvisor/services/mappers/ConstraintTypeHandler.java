@@ -3,7 +3,7 @@ package ru.akvine.dbvisor.services.mappers;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedTypes;
 import org.apache.ibatis.type.TypeHandler;
-import ru.akvine.dbvisor.enums.ConstraintType;
+import ru.akvine.compozit.commons.visor.ConstraintType;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
