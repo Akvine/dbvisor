@@ -1,6 +1,8 @@
 package ru.akvine.dbvisor.services.mappers;
 
 import ru.akvine.dbvisor.services.dto.metadata.Constraint;
+import ru.akvine.dbvisor.services.dto.metadata.Index;
+import ru.akvine.dbvisor.services.dto.metadata.Trigger;
 
 import java.util.List;
 
@@ -9,6 +11,89 @@ import java.util.List;
  * с помощью MyBatis
  */
 public interface CommonMapper {
+
+    /**
+     * Реализация должна возвращать список уникальных Index (индексов) конкретной таблицы для конкретной БД
+     * которые НЕ связаны с PRIMARY KEY и UNIQUE ограничениями, а были созданы сами
+     * @param tableName наименование в БД
+     * @param schemaName наименование схемы в БД
+     * @param activeOnly возвращать только активные на данный момент индексы
+     * @return список Index
+     */
+    List<Index> getUniqueIndexesByTable(String tableName, String schemaName, boolean activeOnly);
+
+    /**
+     * Реализация должна возвращать список НЕ уникальных Index (индексов) конкретной таблицы для конкретной БД
+     * @param tableName наименование таблицы в БД
+     * @param schemaName наименование схемы в БД
+     * @param activeOnly возвращать только активные на данный момент индексы
+     * @return список Index
+     */
+    List<Index> getNonUniqueIndexesByTable(String tableName, String schemaName, boolean activeOnly);
+
+    /**
+     * Реализация должна возвращать список Trigger (триггеров) конкретной таблицы для конкретной БД
+     *
+     * @param tableName наименование таблица в БД
+     * @param schemaName наименование схемы в БД
+     * @param activeOnly возвращать только активные на данный момент триггеры
+     * @return список Trigger
+     */
+    List<Trigger> getTriggersByTable(String tableName, String schemaName, boolean activeOnly);
+
+    /**
+     * Реализация должна возвращать список PRIMARY KEY конкретной таблицы для конкретной БД
+     *
+     * @param tableName наименование таблицы в БД
+     * @param schemaName наименование схемы в БД
+     * @return список Constraint
+     */
+    List<Constraint> getPrimaryKeyByTable(String tableName, String schemaName);
+
+    /**
+     * Реализация должна возвращать список FOREIGN KEY конкретной таблицы для конкретной БД
+     *
+     * @param tableName наименование таблицы в БД
+     * @param schemaName наименование схемы в БД
+     * @return список Constraint
+     */
+    List<Constraint> getForeignKeyByTable(String tableName, String schemaName);
+
+    /**
+     * Реализация должна возвращать список UNIQUE конкретной таблицы для конкретной БД
+     *
+     * @param tableName наименование таблицы в БД
+     * @param schemaName наименование схемы в БД
+     * @return список Constraint
+     */
+    List<Constraint> getUniqueByTable(String tableName, String schemaName);
+
+    /**
+     * Реализация должна возвращать список CHECK конкретной таблицы для конкретной БД
+     *
+     * @param tableName наименование таблицы в БД
+     * @param schemaName наименование схемы в БД
+     * @return список Constraint
+     */
+    List<Constraint> getCheckByTable(String tableName, String schemaName);
+
+    /**
+     * Реализация должна возвращать список DEFAULT конкретной таблицы для конкретной БД
+     *
+     * @param tableName наименование таблицы в БД
+     * @param schemaName наименование схемы в БД
+     * @return список Constraint
+     */
+    List<Constraint> getDefaultByTable(String tableName, String schemaName);
+
+    /**
+     * Реализация должна возвращать список NOT NULL конкретной таблицы для конкретной БД
+     *
+     * @param tableName наименование таблицы в БД
+     * @param schemaName наименование схемы в БД
+     * @return список Constraint
+     */
+    List<Constraint> getNotNullByTable(String tableName, String schemaName);
 
     /**
      * Получить список с названиями таблиц, которые ссылаются на переданную
@@ -26,7 +111,7 @@ public interface CommonMapper {
      *
      * @param tableName  наименование таблицы в БД
      * @param columnName наименование колонки в БД
-     * @param schemName  наименование схемы в БД
+     * @param schemaName  наименование схемы в БД
      * @return список Constraint
      */
     Constraint getPKConstraintForColumn(String tableName, String columnName, String schemaName);

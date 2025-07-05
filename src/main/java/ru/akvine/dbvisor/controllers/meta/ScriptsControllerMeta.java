@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import ru.akvine.compozit.commons.dto.Response;
 import ru.akvine.compozit.commons.scripts.ExecuteScriptsRequest;
+import ru.akvine.compozit.commons.visor.GenerateScriptsRequest;
 import ru.akvine.dbvisor.controllers.dto.script.GenerateClearScriptRequest;
 
 @RequestMapping(value = "/scripts")
@@ -15,4 +16,7 @@ public interface ScriptsControllerMeta {
 
     @PostMapping(value = "/generate/clear")
     Response generateClear(@RequestBody @Valid GenerateClearScriptRequest request);
+
+    @PostMapping(value = "/generate")
+    Response generate(@RequestBody @Valid GenerateScriptsRequest request);
 }
