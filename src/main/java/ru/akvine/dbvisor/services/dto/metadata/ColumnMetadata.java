@@ -1,5 +1,6 @@
 package ru.akvine.dbvisor.services.dto.metadata;
 
+import jakarta.annotation.Nullable;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import ru.akvine.compozit.commons.visor.ConstraintType;
@@ -14,6 +15,8 @@ public class ColumnMetadata {
     private String columnName;
     private String tableName;
     private String dataType;
+    @Nullable
+    private String targetColumnNameForForeignKey;
     private int orderIndex;
     private int size;
     private boolean generatedAlways;

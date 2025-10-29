@@ -24,6 +24,10 @@
         <result property="relatedTableName" column="relatedTableName" javaType="java.lang.String"/>
         <result typeHandler="ru.akvine.dbvisor.services.mappers.ConstraintTypeHandler" property="constraintType" column="constraintType"/>
     </resultMap>
+    <resultMap id="ForeignConstraintInfo" type="ru.akvine.dbvisor.services.dto.metadata.ForeignConstraintInfo">
+        <result property="referencedColumnName" column="referencedColumnName" javaType="java.lang.String"/>
+        <result property="referencedTableName" column="referencedTableName" javaType="java.lang.String"/>
+    </resultMap>
 
     <select id="getRelatedTables" resultType="string">
         SELECT DISTINCT kcu.table_name
@@ -261,6 +265,25 @@
         AND pattr.attnum > 0
         AND constr.contype = 'f'
         AND ARRAY [pattr.attnum] @> constr.conkey
+    </select>
+
+    <select id="getTargetForeignColumnNameAndTableName" resultMap="ForeignConstraintInfo">
+        SELECT DISTINCT
+        ref_cls.relname AS referencedTableName,
+        ref_attr.attname AS referencedColumnName
+        FROM pg_constraint constr
+        JOIN pg_class cls ON constr.conrelid = cls.oid
+        JOIN pg_attribute pattr ON cls.oid = pattr.attrelid
+        JOIN pg_namespace nsp ON nsp.oid = cls.relnamespace
+        JOIN pg_class ref_cls ON constr.confrelid = ref_cls.oid
+        JOIN pg_attribute ref_attr ON ref_cls.oid = ref_attr.attrelid
+        AND ref_attr.attnum = ANY(constr.confkey)
+        WHERE cls.relname = #{tableName}
+        AND pattr.attname = #{columnName}
+        AND nsp.nspname = #{schemaName}
+        AND pattr.attnum > 0
+        AND constr.contype = 'f'
+        AND pattr.attnum = ANY(constr.conkey)
     </select>
 
     <select id="getNotNullConstraintForColumn" resultMap="Constraint">

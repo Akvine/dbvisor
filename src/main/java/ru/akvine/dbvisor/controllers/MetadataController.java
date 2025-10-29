@@ -5,15 +5,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.akvine.compozit.commons.dto.Response;
-import ru.akvine.compozit.commons.visor.ConstraintType;
 import ru.akvine.dbvisor.controllers.converters.MetadataConverter;
 import ru.akvine.dbvisor.controllers.dto.metadata.ListConstraintsRequest;
 import ru.akvine.dbvisor.controllers.dto.metadata.ListConstraintsResponse;
 import ru.akvine.dbvisor.controllers.meta.MetadataControllerMeta;
 import ru.akvine.dbvisor.services.MetadataService;
+import ru.akvine.dbvisor.services.dto.metadata.ListConstraintsResult;
 import ru.akvine.dbvisor.services.dto.metadata.GetConstraints;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,8 +22,10 @@ public class MetadataController implements MetadataControllerMeta {
     @Override
     public Response listConstraints(@RequestBody @Valid ListConstraintsRequest request) {
         GetConstraints action = metadataConverter.convertToGetConstraints(request);
-        List<ConstraintType> result = metadataService.getConstraints(action);
+        ListConstraintsResult result = metadataService.getConstraints(action);
         return new ListConstraintsResponse()
-                .setConstraintTypes(result);
+                .setConstraintTypes(result.getConstraintTypes())
+                .setTargetColumnNameForForeignKey(result.getTargetColumnNameForForeignKey())
+                .setTargetTableNameForForeignKey(result.getTargetTableNameForForeignKey());
     }
 }

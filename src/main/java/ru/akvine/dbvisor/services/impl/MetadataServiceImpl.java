@@ -7,7 +7,9 @@ import ru.akvine.dbvisor.services.DataSourceService;
 import ru.akvine.dbvisor.services.MapperService;
 import ru.akvine.dbvisor.services.MetadataService;
 import ru.akvine.dbvisor.services.dto.metadata.Constraint;
+import ru.akvine.dbvisor.services.dto.metadata.ForeignConstraintInfo;
 import ru.akvine.dbvisor.services.dto.metadata.GetConstraints;
+import ru.akvine.dbvisor.services.dto.metadata.ListConstraintsResult;
 import ru.akvine.dbvisor.services.mappers.CommonMapper;
 import ru.akvine.dbvisor.utils.Asserts;
 
@@ -22,8 +24,9 @@ public class MetadataServiceImpl implements MetadataService {
     private final MapperService mapperService;
 
     @Override
-    public List<ConstraintType> getConstraints(GetConstraints action) {
+    public ListConstraintsResult getConstraints(GetConstraints action) {
         Asserts.isNotNull(action);
+        ListConstraintsResult result = new ListConstraintsResult();
 
         DataSource dataSource = dataSourceService.getOrCreateDataSource(action.getConnectionInfo());
         CommonMapper mapper = mapperService.getMapper(dataSource, action.getConnectionInfo().getDatabaseType());
@@ -45,7 +48,14 @@ public class MetadataServiceImpl implements MetadataService {
             throw new RuntimeException(exception);
         }
 
-        return constraints;
+        if (constraints.contains(ConstraintType.FOREIGN_KEY)) {
+            ForeignConstraintInfo info = mapper.getTargetForeignColumnNameAndTableName(tableName, columnName, schema);
+            result.setTargetColumnNameForForeignKey(info.getReferencedColumnName());
+            result.setTargetTableNameForForeignKey(info.getReferencedTableName());
+        }
+
+        result.setConstraintTypes(constraints);
+        return result;
     }
 
     private void addConstraintType(List<ConstraintType> constraints, Constraint constraintToAdd) {

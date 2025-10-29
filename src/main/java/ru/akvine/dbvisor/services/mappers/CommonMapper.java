@@ -1,6 +1,7 @@
 package ru.akvine.dbvisor.services.mappers;
 
 import ru.akvine.dbvisor.services.dto.metadata.Constraint;
+import ru.akvine.dbvisor.services.dto.metadata.ForeignConstraintInfo;
 import ru.akvine.dbvisor.services.dto.metadata.Index;
 import ru.akvine.dbvisor.services.dto.metadata.Trigger;
 
@@ -151,6 +152,9 @@ public interface CommonMapper {
      * @return ограничение
      */
     Constraint getFKConstraintForColumn(String tableName, String columnName, String schemaName);
+
+
+    ForeignConstraintInfo getTargetForeignColumnNameAndTableName(String tableName, String columnName, String schemaName);
 
     /**
      * Реализация должна возвращать NOT NULL,
