@@ -1,5 +1,6 @@
 package ru.akvine.dbvisor.services.converters;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import ru.akvine.compozit.commons.utils.DateTimeUtils;
 import ru.akvine.dbvisor.enums.DatabaseType;
@@ -23,6 +24,12 @@ public class PostgreSQLTypeConverterService implements TypeConverterService {
 
         DateTimeFormatter formatter;
         String value = action.getValue();
+
+        // TODO: добавить параметр в мета-информацию для колонки, воспринимать ли пустоту за null или нет
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+
         try {
             PostgreSQLType postgreSQLType = PostgreSQLType.from(action.getColumnTypeName());
             switch (postgreSQLType) {
